@@ -19,7 +19,7 @@ inc (x O) = x I
 inc (x I) = (inc x) O
 
 to : ℕ → Bin
-to 0 = ⟨⟩
+to 0 = ⟨⟩ O
 to (suc n) = inc (to n)
 
 from : Bin → ℕ
@@ -69,3 +69,44 @@ from-is-inv-to (suc n) =
   ≡⟨ cong suc (from-is-inv-to n) ⟩
     suc n
   ∎
+
+data One : Bin → Set where
+  one : One (⟨⟩ I)
+  inc-one : ∀ {b : Bin} → One b → One (inc b)
+
+data Can : Bin → Set where
+  zero : Can (⟨⟩ O)
+  starts-one : ∀ {b : Bin} → One b →  Can b
+
+inc-preserves-can : ∀ {b : Bin} → Can b → Can (inc b)
+inc-preserves-can zero = starts-one one
+inc-preserves-can (starts-one one-b) = starts-one (inc-one one-b)
+
+to-bin-yields-can : ∀ (n : ℕ) → Can (to n)
+to-bin-yields-can ℕ.zero = zero
+to-bin-yields-can (suc n) = inc-preserves-can (to-bin-yields-can n)
+
+to-inv-from-preserves-can : ∀ {b : Bin} → Can b → to (from b) ≡ b
+to-inv-from-preserves-can {⟨⟩ O} zero =
+  begin
+    to (from (⟨⟩ O))
+  ≡⟨⟩
+    to (2 * (from ⟨⟩))
+  ≡⟨⟩
+    to (2 * 0)
+  ≡⟨ cong to (*-commutes 2 0) ⟩
+    to 0
+  ≡⟨⟩
+    ⟨⟩ O
+  ∎
+to-inv-from-preserves-can {b} can-b = {!
+  begin
+    to (from (inc b))
+  ≡⟨ cong to (inc-is-bin-suc b) ⟩
+    to (suc (from b))
+  ≡⟨⟩
+    inc (to (from b))
+  ≡⟨ cong inc (to-inv-from-preserves-can can-b) ⟩
+    inc b
+  ∎
+!}
