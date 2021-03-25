@@ -5,6 +5,7 @@ open Eq using (_≡_; refl; cong; sym)
 open Eq.≡-Reasoning using (begin_; _≡⟨_⟩_; _≡⟨⟩_; _∎)
 open import Data.Nat using (ℕ; suc; _*_; _+_)
 open import induction using (+-suc-r; *-commutes)
+open import isomorphism using (_≲_)
 
 -- Binary representation of integer
 
@@ -110,3 +111,11 @@ to-inv-from-preserves-can {b} can-b = {!
     inc b
   ∎
 !}
+
+ℕ≲Bin : ℕ ≲ Bin
+ℕ≲Bin =
+  record {
+    to = to;
+    from = from;
+    from∘to = from-is-inv-to
+  }
