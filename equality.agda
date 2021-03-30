@@ -1,13 +1,6 @@
 module equality where
 
 
--- ≤-Reasoning
--- The proof of monotonicity from Chapter Relations can be written in a more
--- readable form by using an analogue of our notation for ≤-Reasoning. Define
--- ≤-Reasoning analogously, and use it to write out an alternative proof that
--- addition is monotonic with regard to inequality. Rewrite all of +-monoˡ-≤,
--- +-monoʳ-≤, and +-mono-≤.
-
 data ℕ : Set where
   zero : ℕ
   suc : ℕ → ℕ
