@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 module relations where
 
 import Relation.Binary.PropositionalEquality as Eq
