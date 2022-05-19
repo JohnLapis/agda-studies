@@ -3,18 +3,14 @@ module list where
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; sym; trans; cong)
 open Eq.≡-Reasoning
--- open import Data.Bool using (Bool; true; false; T; _∧_; _∨_; not)
--- open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_; _≤_; s≤s; z≤n)
+open import Data.Bool using (Bool; true; false; T; _∧_; _∨_; not)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
 open import Data.Nat.Properties using (*-comm; *-distribʳ-+)
--- open import Data.Nat.Properties using
---   (+-assoc; +-identityˡ; +-identityʳ; *-assoc; *-identityˡ; *-identityʳ)
--- open import Relation.Nullary using (¬_; Dec; yes; no)
-open import Relation.Nullary using (¬_)
+open import Relation.Nullary using (¬_; Dec; yes; no)
+open import Relation.Unary using (Decidable)
 open import Data.Product using (_×_; _,_; proj₁; proj₂; ∃; ∃-syntax)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Function using (_∘_)
--- open import Level using (Level)
 open import isomorphism using (_≃_; _⇔_; extensionality)
 open import Data.List using (List; _++_; length; map; foldr)
 open import Agda.Builtin.List using ([]; _∷_)
@@ -234,6 +230,7 @@ All-++-≃ xs ys = record {
                             λ{(here Px) → refl ;
                               (there Pxs) → ⊥-elim (¬Pxs (there Pxs))}
 
+
     to∘from : ∀ {A : Set} {P : A → Set} (xs : List A) (z : All (¬_ ∘ P) xs)
       → to xs (from xs z) ≡ z
     to∘from [] [] = refl
@@ -323,3 +320,53 @@ Any-∃ xs      = record {
   to∘from (x ∷ xs) (x' , there x'∈xs , Px') =
     cong (λ{ (v , v∈xs , Pv) → v , there v∈xs , Pv})
              (to∘from xs (x' , x'∈xs , Px'))
+
+Any? : ∀ {A : Set} {P : A → Set} → Decidable P → Decidable (Any P)
+Any? P? [] = no λ()
+Any? P? (x ∷ xs) with P? x | Any? P? xs
+...               | yes Px | _       = yes (here Px)
+...               | _      | yes Pxs = yes (there Pxs)
+...               | no ¬Px | no ¬Pxs = no λ{ (here Px) → ¬Px Px ;
+                                             (there Pxs) → ¬Pxs Pxs}
+
+any : ∀ {A : Set} → (A → Bool) → List A → Bool
+any P = foldr _∨_ false ∘ map P
+
+
+data merge {A : Set} : (xs ys zs : List A) → Set where
+  []      :                                   merge []       []      []
+  left-∷  : ∀ {x xs ys zs} → merge xs ys zs → merge (x ∷ xs) ys      (x ∷ zs)
+  right-∷ : ∀ {y xs ys zs} → merge xs ys zs → merge  xs     (y ∷ ys) (y ∷ zs)
+
+
+_ : merge (1 ∷ 4 ∷ []) (2 ∷ 3 ∷ []) (1 ∷ 2 ∷ 3 ∷ 4 ∷ [])
+_ = left-∷ (right-∷ (right-∷ (left-∷ [])))
+
+split : ∀ {A : Set} {P : A → Set} (P? : Decidable P) (zs : List A)
+  -- → ∃[ xs ] ∃[ ys ] (merge xs ys zs × All P xs × All (¬_ ∘ P) ys)
+          → ∃[ xs ] ∃[ ys ] (All P xs × All (¬_ ∘ P) ys × merge xs ys zs)
+split P? [] = [] , [] , [] , [] , []
+-- split P? (z ∷ zs) = {!!} , ({!!} , ({!!} , {!!} , {!!}))
+split P? (z ∷ zs) with
+      P? z    | split P? zs
+-- ... | yes Pz  | [] , [] , [] , [] , []        = [] , [] , [] , [] , {!()!}
+-- ... | yes Pz  | (x ∷ xs) , ys , Pxs , Pys , left-∷ c  =
+--                 (x ∷ xs) , ys , Pxs , Pys , left-∷ {!c!}
+-- ... | yes Pz  | xs , ys , Pxs , Pys , right-∷ c = xs , ys , Pxs , Pys , {!!}
+-- ... | yes Pz  | xs , ys , Pxs , Pys , c     = xs ,   ys ,   Pxs ,  Pys ,  {!!}
+...| yes Pz | (x ∷ xs) , ys , (Px ∷ Pxs) , ¬Pys , left-∷ c =
+              -- (x ∷ xs) , ys , (Px ∷ Pxs) , ¬Pys , {!left-∷ c!}
+               xs , ys , Pxs , ¬Pys , {!left-∷ c!}
+...| no ¬Pz | xs , (y ∷ ys) , Pxs , Pys , right-∷ c =
+              xs , (y ∷ ys) , Pxs , Pys , {!right-∷ c!}
+
+-- ... | yes Pz  | xs , ys , Pxs , Pys , c     = xs ,   ys ,   Pxs ,  Pys ,  {!!}
+
+split' : ∀ {A : Set} {P : A → Set} (P? : Decidable P) (zs : List A)
+  -- → ∃[ xs ] ∃[ ys ] (merge xs ys zs × All P xs × All (¬_ ∘ P) ys)
+          → ∃[ xs ] ∃[ ys ] (All P xs × All (¬_ ∘ P) ys × merge xs ys zs)
+split' P? [] = [] , [] , [] , [] , []
+split' P? (z ∷ zs) with
+   P? z   | split' P? zs
+... | yes Pz | (.z ∷ xs) , ys , (.Pz ∷ Pxs) , Pys , left-∷ c =
+               (.z ∷ xs) , ys , (.Pz ∷ Pxs) , Pys , {!left-∷ !}

@@ -45,6 +45,78 @@ postulate
                                    (λ {m≡n → ¬m≡n (s≡s m≡n)}) ,
                                    s≤s n<m)
 
+¬¬-intro : ∀ {A : Set}
+  → A
+    -----
+  → ¬ ¬ A
+¬¬-intro x ¬x = ¬x x
+
+¬¬¬-elim : ∀ {A : Set}
+  → ¬ ¬ ¬ A
+    -------
+  → ¬ A
+¬¬¬-elim ¬¬¬x  =  λ x → ¬¬¬x (¬¬-intro x)
+
+contraposition : ∀ {P Q : Set} → (P → Q) → (¬ Q → ¬ P)
+contraposition f ¬Q P = ¬Q (f P)
+
+postulate
+  ×-dual-→ : ∀ {A B : Set} → (A × ¬ B) → (A → B)
+  ⊎-dual-× : ∀ {A B : Set} → ¬ (A ⊎ B) → ¬ A × ¬ B
+  conv-⊎-?ˡ : ∀ {A B : Set} → ¬ A ⊎ B → A ⊎ ¬ B
+  conv-⊎-?ʳ : ∀ {A B : Set} → A ⊎ ¬ B → ¬ A ⊎ B
+
+module op₂ where
+  em-implies-¬¬-elim :
+    (∀ {P : Set} → (P ⊎ ¬ P))
+    -------------------------
+    → ∀ {P' : Set} → (¬ ¬ P' → P')
+  em-implies-¬¬-elim em {P'} with em {P'}
+  ... | inj₁ P =  λ ¬¬P → P
+  ... | inj₂ ¬P = λ ¬¬P → ⊥-elim (¬¬P ¬P)
+
+  ¬¬-elim-implies-peirce :
+    (∀ {A : Set} → (¬ ¬ A → A))
+    -------------------------------------
+    → ∀ {P Q : Set} → ((P → Q) → P) → P
+  ¬¬-elim-implies-peirce ¬¬-elim f = ¬¬-elim λ ¬P → ¬P (f λ P → ¬¬-elim (λ ¬Q → ¬P P))
+
+  peirce-implies-→⊎ :
+    (∀ {A B : Set} → ((A → B) → A) → A)
+    -----------------------------------
+    → ∀ {P Q : Set} → (P → Q) → ¬ P ⊎ Q
+  peirce-implies-→⊎ peirce P→Q = peirce λ ¬P⊎Q → (inj₁ λ P → ¬P⊎Q (inj₂ (P→Q P)))
+
+  →⊎-implies-de-morgan :
+    (∀ {A B : Set} → (A → B) → (¬ A) ⊎ B)
+    -----------------------------------
+    → ∀ {A′ B : Set} → ¬ ((¬ A′) × (¬ B)) → A′ ⊎ B
+  →⊎-implies-de-morgan →-as-¬⊎ e = let
+                                       a = (λ{ (inj₁ x) → x}) (→-as-¬⊎ {!!})
+                                       Z = {!!}
+                                   in ⊥-elim Z
+  -- →⊎-implies-de-morgan →-as-¬⊎ e = let ¬A = ({!λ()!}
+  --                                      ¬B = λ x → {!!}
+  --                                      C = →-as-¬⊎ λ{ x → {!!}}
+  --                                  in ⊥-elim (e (¬A , ¬B))
+                           -- in ⊥-elim (e {!!})
+
+  de-morgan-implies-em :
+    (∀ {A B : Set} → ¬ (¬ A × ¬ B) → A ⊎ B)
+    ---------------------------------------
+    → ∀ {A′ : Set} → (A′ ⊎ ¬ A′)
+  de-morgan-implies-em = {!!}
+
+
+Stable : Set → Set
+Stable A = ¬ ¬ A → A
+
+¬-stable : ∀ {A : Set} → Stable (¬ A)
+¬-stable = {!!}
+
+×-stable : ∀ {A B : Set} → Stable (A × B)
+×-stable = {!!}
+
 
 -- module op₁ where
 --   -- IMP should the parameters be the same for the laws in the implications?
@@ -72,83 +144,3 @@ postulate
 
 --   morgan-implies-em : ∀ {A B : Set} → morgan A B → em A
 --   morgan-implies-em = ?
-
-¬¬-intro : ∀ {A : Set}
-  → A
-    -----
-  → ¬ ¬ A
-¬¬-intro x ¬x = ¬x x
-
-¬¬¬-elim : ∀ {A : Set}
-  → ¬ ¬ ¬ A
-    -------
-  → ¬ A
-¬¬¬-elim ¬¬¬x  =  λ x → ¬¬¬x (¬¬-intro x)
-
-contraposition : ∀ {P Q : Set} → (P → Q) → (¬ Q → ¬ P)
-contraposition f ¬Q P = ¬Q (f P)
-
-postulate
-  ×-dual-→ : ∀ {A B : Set} → (A × ¬ B) → (A → B)
-  ⊎-dual-× : ∀ {A B : Set} → ¬ (A ⊎ B) → ¬ A × ¬ B
-  conv-⊎-?ˡ : ∀ {A B : Set} → ¬ A ⊎ B → A ⊎ ¬ B
-  conv-⊎-?ʳ : ∀ {A B : Set} → A ⊎ ¬ B → ¬ A ⊎ B
-  -- pierce' : ∀ {A B : Set} → (¬ A → ¬ (A → B)) → A
-
-module op₂ where
-  em-implies-¬¬-elim :
-    (∀ {P : Set} → (P ⊎ ¬ P))
-    -------------------------
-    → ∀ {P' : Set} → (¬ ¬ P' → P')
-  em-implies-¬¬-elim em {P'} with em {P'}
-  ... | inj₁ P =  λ ¬¬P → P
-  ... | inj₂ ¬P = λ ¬¬P → ⊥-elim (¬¬P ¬P)
-
-  ¬¬-elim-implies-pierce :
-    (∀ {A : Set} → (¬ ¬ A → A))
-    -------------------------------------
-    → ∀ {P Q : Set} → ((P → Q) → P) → P
-  ¬¬-elim-implies-pierce ¬¬-elim f = ¬¬-elim λ ¬P → ¬P (f λ P → ¬¬-elim (λ ¬Q → ¬P P))
-
-  pierce-implies-→⊎ :
-    (∀ {A B : Set} → ((A → B) → A) → A)
-    -----------------------------------
-    → ∀ {P Q : Set} → (P → Q) → ¬ P ⊎ Q
-  pierce-implies-→⊎ pierce f = pierce λ x → (inj₁ λ P → x (inj₂ (f P)))
-  -- pierce-implies-→⊎ pierce' f = inj₂ (f (pierce'
-  --                               λ ¬P → ×-dual-→ (⊎-dual-× λ {(inj₁ P) → ¬P P
-  --                                                           ; (inj₂ ⊥) → ⊥})))-- $yep
-
-  →⊎-de-morgan :
-    (∀ {A B : Set} → (A → B) → ¬ A ⊎ B)
-    -----------------------------------
-    → ∀ {A′ B : Set} → ¬ (¬ A′ × ¬ B) → A′ ⊎ B
-  →⊎-de-morgan = {!!}
-
-  →⊎-implies-em :
-    (∀ {A B : Set} → (A → B) → ¬ A ⊎ B)
-    -----------------------------------
-    → ∀ {A′ : Set} → (A′ ⊎ ¬ A′)
-  →⊎-implies-em = {!!}
-
-  ¬¬-elim-implies-de-morgan :
-    (∀ {A : Set} → (¬ ¬ A → A))
-  ----------------------------------------
-    → ∀ {A′ B : Set} → ¬ (¬ A′ × ¬ B) → A′ ⊎ B
-  ¬¬-elim-implies-de-morgan = {!!}
-
-  de-morgan-implies-em :
-    (∀ {A B : Set} → ¬ (¬ A × ¬ B) → A ⊎ B)
-    ---------------------------------------
-    → ∀ {A′ : Set} → (A′ ⊎ ¬ A′)
-  de-morgan-implies-em = {!!}
-
-
-Stable : Set → Set
-Stable A = ¬ ¬ A → A
-
-¬-stable : ∀ {A : Set} → Stable (¬ A)
-¬-stable = {!!}
-
-×-stable : ∀ {A B : Set} → Stable (A × B)
-×-stable = {!!}
